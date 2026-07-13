@@ -1,0 +1,16 @@
+-- Sample master data. Run after the migration.
+insert into public.branches(id,code,name,address,phone) values('11111111-1111-1111-1111-111111111111','BKS','Cabang Bekasi','Bekasi','0811-1234-5678') on conflict(code) do nothing;
+insert into public.warehouses(id,branch_id,code,name) values('22222222-2222-2222-2222-222222222222','11111111-1111-1111-1111-111111111111','BKS-WH','Gudang Bekasi') on conflict(code) do nothing;
+insert into public.product_brands(id,name) values('33333333-3333-3333-3333-333333333331','GS Astra'),('33333333-3333-3333-3333-333333333332','Yuasa'),('33333333-3333-3333-3333-333333333333','Incoe') on conflict(name) do nothing;
+insert into public.product_categories(id,name) values('44444444-4444-4444-4444-444444444441','Aki Mobil'),('44444444-4444-4444-4444-444444444442','Aki Motor') on conflict(name) do nothing;
+insert into public.products(id,sku,brand_id,category_id,name,voltage,capacity_ah,warranty_months,minimum_stock,purchase_price,selling_price) values
+('55555555-5555-5555-5555-555555555551','GS-NS60','33333333-3333-3333-3333-333333333331','44444444-4444-4444-4444-444444444441','GS Astra NS60',12,45,12,5,850000,1050000),
+('55555555-5555-5555-5555-555555555552','YUA-YTZ5S','33333333-3333-3333-3333-333333333332','44444444-4444-4444-4444-444444444442','Yuasa YTZ5S',12,4,6,5,650000,850000),
+('55555555-5555-5555-5555-555555555553','INC-80D26L','33333333-3333-3333-3333-333333333333','44444444-4444-4444-4444-444444444441','Incoe 80D26L',12,65,12,4,950000,1250000)
+on conflict(sku) do nothing;
+insert into public.product_serials(product_id,current_warehouse_id,serial_number,purchase_price) values
+('55555555-5555-5555-5555-555555555551','22222222-2222-2222-2222-222222222222','GS260700125',850000),
+('55555555-5555-5555-5555-555555555551','22222222-2222-2222-2222-222222222222','GS260700126',850000),
+('55555555-5555-5555-5555-555555555552','22222222-2222-2222-2222-222222222222','YU25050078',650000),
+('55555555-5555-5555-5555-555555555553','22222222-2222-2222-2222-222222222222','IN24090156',950000)
+on conflict(serial_number) do nothing;
