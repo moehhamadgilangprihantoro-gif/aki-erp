@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Boxes, CircleDollarSign, CreditCard, PackageSearch, ShoppingCart } from 'lucide-react'
+import { Boxes, CircleDollarSign, CreditCard, PackageSearch, ShoppingCart, Store } from 'lucide-react'
 import { StatCard } from './stat-card'
 
 function money(value: number) {
@@ -33,7 +33,7 @@ export function AdminDashboard({ name, data }: { name: string; data: AdminDashbo
           <Link href="/dashboard/pos" className="action primary-action"><ShoppingCart />Mulai Transaksi Baru</Link>
           <Link href="/dashboard/products" className="action"><Boxes />Kelola Produk</Link>
           <Link href="/dashboard/products" className="action"><PackageSearch />Cek Stok</Link>
-          <Link href="/dashboard" className="action"><CreditCard />Lihat Laporan</Link>
+          <Link href="/dashboard/orders" className="action"><Store />Pesanan Online</Link>
         </div>
       </section>
 

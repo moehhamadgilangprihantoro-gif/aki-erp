@@ -1,120 +1,165 @@
-# AKI ERP — Netlify + Supabase
+# AKI Store + ERP v2
 
-Starter ERP penjualan aki berbasis **Next.js 16**, **Supabase Auth/PostgreSQL**, dan **Netlify**.
+Ecommerce aki dan ERP dalam satu aplikasi Next.js. Public store, portal pelanggan, POS, inventori serial number, pesanan online, pembayaran, invoice, pemasangan, dan garansi memakai satu database Supabase.
 
-## Fitur yang sudah tersedia
+## Alur otomatis
 
-- Login email/password dan registrasi pelanggan.
-- Dashboard berbeda untuk staff dan pelanggan.
-- Role: SUPER_ADMIN, OWNER, BRANCH_MANAGER, PURCHASING, WAREHOUSE, CASHIER, SALES, TECHNICIAN, FINANCE, AUDITOR, CUSTOMER.
-- Data dibatasi berdasarkan role dan cabang menggunakan Supabase Row Level Security.
-- Produk dan stok berdasarkan serial number.
-- POS sederhana satu aki per transaksi.
-- PostgreSQL RPC atomic: invoice, item, pembayaran, trade-in, stock movement, dan status serial dibuat bersama-sama.
-- Konfigurasi Netlify dan responsive UI.
-
-## 1. Buat project Supabase
-
-1. Buat project baru di Supabase.
-2. Buka **SQL Editor**.
-3. Jalankan `supabase/migrations/202607130001_initial_schema.sql`.
-4. Jalankan `supabase/seed.sql`.
-5. Buka **Project Settings / API** atau **Connect** lalu salin Project URL dan Publishable Key.
-
-## 2. Environment lokal
-
-Salin `.env.example` menjadi `.env.local`:
-
-```bash
-cp .env.example .env.local
+```text
+Customer checkout
+→ PostgreSQL membuat order
+→ Serial aki menjadi RESERVED
+→ Order langsung muncul di ERP
+→ Pembayaran dikonfirmasi oleh staff atau webhook
+→ Invoice penjualan dibuat
+→ Serial menjadi SOLD
+→ Stock movement SALE_OUT dibuat
+→ Pembayaran dicatat
+→ Garansi dibuat
+→ Job pemasangan dibuat bila dipilih
 ```
 
-Isi:
+Jika order transfer/QRIS tidak dibayar sampai batas waktu, Netlify Scheduled Function memanggil database setiap 15 menit untuk mengubah order menjadi `EXPIRED` dan mengembalikan serial ke `AVAILABLE`.
+
+## Fitur source code
+
+- Homepage ecommerce
+- Katalog dan detail produk
+- Harga dan stok real-time dari Supabase
+- Keranjang berbasis browser
+- Checkout cabang, delivery, pemasangan, kendaraan, dan tukar tambah
+- Transfer bank, QRIS, COD, dan bayar di toko
+- Portal pesanan pelanggan
+- Pesanan online pada ERP admin
+- Tombol konfirmasi pembayaran oleh admin/finance/kasir
+- Update status fulfillment
+- Webhook payment generic
+- POS penjualan toko
+- Master produk dan stok serial
+- Role dan RLS multi-cabang
+
+## File database
+
+```text
+supabase/migrations/202607130001_initial_schema.sql
+supabase/migrations/202607130002_ecommerce_integration.sql
+supabase/seed.sql
+```
+
+### Project Supabase lama yang sudah memakai v1
+
+Jalankan hanya:
+
+1. `202607130002_ecommerce_integration.sql`
+2. `seed.sql`
+
+Jangan ulangi migration `001` bila sebelumnya sudah berhasil dijalankan.
+
+### Project Supabase baru
+
+Jalankan secara berurutan:
+
+1. `202607130001_initial_schema.sql`
+2. `202607130002_ecommerce_integration.sql`
+3. `seed.sql`
+
+Semua dapat dijalankan melalui Supabase Dashboard → SQL Editor tanpa install aplikasi di laptop.
+
+## Environment variables Netlify
+
+Wajib untuk seluruh aplikasi:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxxx
+NEXT_PUBLIC_SUPABASE_URL=https://PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
 ```
 
-Jangan gunakan `service_role` atau secret key di browser.
+Wajib untuk webhook pembayaran dan pelepasan stok otomatis:
 
-## 3. Install dan jalankan
-
-```bash
-npm install
-npm run dev
+```env
+SUPABASE_SECRET_KEY=sb_secret_xxxxx
+PAYMENT_WEBHOOK_SECRET=buat-random-secret-panjang
+CRON_SECRET=buat-random-secret-lain
 ```
 
-Buka `http://localhost:3000`.
+`SUPABASE_SECRET_KEY` tidak boleh memakai prefix `NEXT_PUBLIC_` dan tidak boleh dimasukkan ke GitHub.
 
-## 4. Buat akun admin/staff
+## Netlify
 
-1. Di Supabase Dashboard buka **Authentication → Users**.
-2. Buat user baru.
-3. Trigger database akan membuat profile role `CUSTOMER` secara aman.
-4. Ubah role dan cabang melalui SQL Editor:
+Repository root harus langsung berisi:
+
+```text
+app/
+components/
+lib/
+netlify/
+supabase/
+package.json
+package-lock.json
+netlify.toml
+```
+
+Build settings:
+
+```text
+Base directory    : kosong
+Build command     : npm run build
+Publish directory : kosong / auto detected
+```
+
+Setelah environment variables disimpan, jalankan **Clear cache and deploy site**.
+
+## Membuat admin pertama
+
+Buat user dari Supabase Authentication, lalu jalankan:
 
 ```sql
 update public.profiles
-set role = 'SUPER_ADMIN',
-    branch_id = '11111111-1111-1111-1111-111111111111'
-where id = 'UUID_USER_DARI_AUTH';
+set role='SUPER_ADMIN',
+    branch_id='11111111-1111-1111-1111-111111111111',
+    is_active=true
+where id=(select id from auth.users where email='admin@example.com');
 ```
 
-Untuk kasir:
+Logout dan login kembali setelah role diubah.
 
-```sql
-update public.profiles
-set role = 'CASHIER',
-    branch_id = '11111111-1111-1111-1111-111111111111'
-where id = 'UUID_USER_DARI_AUTH';
+## Konfirmasi pembayaran
+
+Untuk transfer manual atau QRIS manual:
+
+```text
+ERP → Pesanan Online → Referensi pembayaran → Konfirmasi bayar
 ```
 
-Logout lalu login kembali setelah role diubah.
+Satu RPC database akan membuat invoice dan mengeluarkan stok secara atomic.
 
-## 5. Deploy ke Netlify dengan Git
+## Webhook pembayaran
 
-```bash
-git init
-git add .
-git commit -m "Initial AKI ERP"
+Endpoint:
+
+```text
+POST /api/payments/webhook
+Header: x-webhook-secret: nilai PAYMENT_WEBHOOK_SECRET
 ```
 
-Push ke GitHub, lalu di Netlify:
+Body generic:
 
-1. **Add new site → Import an existing project**.
-2. Pilih repository.
-3. Build command: `npm run build`.
-4. Tambahkan environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-5. Deploy.
-
-Atau dengan Netlify CLI:
-
-```bash
-npm install -g netlify-cli
-netlify login
-netlify init
-netlify env:set NEXT_PUBLIC_SUPABASE_URL "https://YOUR_PROJECT.supabase.co"
-netlify env:set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY "sb_publishable_xxx"
-netlify deploy --prod
+```json
+{
+  "orderId": "UUID-ORDER",
+  "provider": "PAYMENT_PROVIDER",
+  "reference": "PAY-123456",
+  "status": "PAID"
+}
 ```
 
-## 6. Supabase Auth URL
+Adaptor provider tertentu dapat dibuat dengan memverifikasi signature provider terlebih dahulu, lalu memanggil RPC `finalize_ecommerce_order_service`.
 
-Di Supabase **Authentication → URL Configuration**:
+## Validasi source
 
-- Site URL: URL production Netlify Anda, contoh `https://aki-erp.netlify.app`
-- Redirect URLs: tambahkan URL production dan `http://localhost:3000/**`
+Project telah diuji dengan:
 
-## Catatan keamanan
-
-- RLS aktif di semua tabel exposed.
-- Role pendaftaran selalu `CUSTOMER`; nilai role tidak diambil dari user metadata.
-- RPC penjualan berada di schema public agar dapat dipanggil Data API, tetapi hak EXECUTE dicabut dari PUBLIC/anon, diberikan hanya kepada authenticated, dan fungsi memeriksa role serta cabang.
-- Jangan menambahkan secret/service role ke variabel `NEXT_PUBLIC_*`.
-
-## Pengembangan berikutnya
-
-Tambahkan penerimaan barang, transfer stok, stock opname, purchase order UI, instalasi teknisi, klaim garansi, invoice PDF, dan notifikasi WhatsApp.
+```text
+npm ci
+npm run lint
+npm run build
+```

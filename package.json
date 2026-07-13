@@ -1,6 +1,6 @@
 {
-  "name": "aki-erp-netlify-supabase",
-  "version": "1.0.0",
+  "name": "aki-store-erp",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -26,5 +26,6 @@
   },
   "overrides": {
     "postcss": "8.5.10"
-  }
+  },
+  "description": "Ecommerce aki terintegrasi ERP, Supabase, dan Netlify"
 }

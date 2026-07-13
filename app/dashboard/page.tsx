@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     if (!customer) return <CustomerDashboard name={profile.full_name} data={{ exists:false,totalPurchase:0,transactionCount:0,warrantyActive:0,installationCount:0,tradeInCount:0,invoices:[],vehicles:[] }} />
 
     const [{ data: invoices }, { count: warrantyActive }, { count: installationCount }, { count: tradeInCount }, { data: vehicles }] = await Promise.all([
-      supabase.from('sales_invoices').select('id, invoice_number, invoice_date, total, payment_status, sales_invoice_items(product:products(name), serial:product_serials(serial_number))').eq('customer_id', customer.id).order('invoice_date', { ascending:false }).limit(8),
+      supabase.from('sales_invoices').select('id, invoice_number, invoice_date, total, payment_status, sales_invoice_items(product_name,serial_number)').eq('customer_id', customer.id).order('invoice_date', { ascending:false }).limit(8),
       supabase.from('warranty_claims').select('*', { count:'exact', head:true }).eq('customer_id', customer.id).in('status', ['SUBMITTED','INSPECTION','APPROVED','REPLACED']),
       supabase.from('installations').select('*', { count:'exact', head:true }).eq('customer_id', customer.id),
       supabase.from('used_batteries').select('*', { count:'exact', head:true }).eq('customer_id', customer.id),
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
 
     const mapped = (invoices ?? []).map((invoice: any) => {
       const firstItem = invoice.sales_invoice_items?.[0]
-      return { id:invoice.id, invoice_number:invoice.invoice_number, invoice_date:invoice.invoice_date, total:Number(invoice.total), payment_status:invoice.payment_status, productName:firstItem?.product?.name ?? 'Produk Aki', serialNumber:firstItem?.serial?.serial_number ?? '' }
+      return { id:invoice.id, invoice_number:invoice.invoice_number, invoice_date:invoice.invoice_date, total:Number(invoice.total), payment_status:invoice.payment_status, productName:firstItem?.product_name ?? 'Produk Aki', serialNumber:firstItem?.serial_number ?? '' }
     })
     const data: CustomerDashboardData = { exists:true, totalPurchase:mapped.reduce((s,x)=>s+x.total,0), transactionCount:mapped.length, warrantyActive:warrantyActive ?? 0, installationCount:installationCount ?? 0, tradeInCount:tradeInCount ?? 0, invoices:mapped, vehicles:vehicles ?? [] }
     return <CustomerDashboard name={profile.full_name} data={data}/>

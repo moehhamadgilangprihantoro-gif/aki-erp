@@ -1,12 +1,39 @@
-# Deploy Checklist
+# Checklist Upgrade dan Deploy
 
-1. Create a Supabase project.
-2. Run `supabase/migrations/202607130001_initial_schema.sql` in SQL Editor.
-3. Run `supabase/seed.sql`.
-4. Copy `.env.example` to `.env.local` and fill the Project URL + Publishable Key.
-5. Run `npm install`, then `npm run dev`.
-6. Create an Auth user and update its `profiles.role` + `branch_id` using the SQL example in README.
-7. Push the project to GitHub and import it in Netlify.
-8. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Netlify environment variables.
-9. Set the Supabase Auth Site URL to your Netlify production URL.
-10. Test login, product list, and one POS transaction using a seeded serial.
+## Supabase
+
+- [ ] Backup database bila project sudah berisi transaksi
+- [ ] Jalankan migration `202607130002_ecommerce_integration.sql`
+- [ ] Jalankan `seed.sql`
+- [ ] Pastikan tabel `orders`, `order_items`, `order_item_serials`, dan `product_warranties` muncul
+- [ ] Pastikan function `create_ecommerce_order`, `staff_mark_order_paid`, dan `expire_unpaid_orders` muncul
+
+## GitHub
+
+- [ ] Upload seluruh isi ZIP ke root repository menggunakan Codespaces
+- [ ] Pastikan folder `app`, `components`, `lib`, `netlify`, dan `supabase` ada
+- [ ] Commit dan push ke branch production
+
+## Netlify
+
+- [ ] Base directory kosong
+- [ ] Build command `npm run build`
+- [ ] Set `NEXT_PUBLIC_SUPABASE_URL`
+- [ ] Set `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- [ ] Set `SUPABASE_SECRET_KEY` sebagai secret
+- [ ] Set `PAYMENT_WEBHOOK_SECRET` sebagai secret
+- [ ] Trigger **Clear cache and deploy site**
+
+## Uji transaksi
+
+- [ ] Register akun customer
+- [ ] Katalog menampilkan produk dan stok
+- [ ] Tambah produk ke keranjang
+- [ ] Checkout dengan cabang yang memiliki stok
+- [ ] Order muncul di `/dashboard/orders`
+- [ ] Serial berubah dari `AVAILABLE` menjadi `RESERVED`
+- [ ] Admin klik Konfirmasi Bayar
+- [ ] Invoice otomatis terbentuk
+- [ ] Serial berubah menjadi `SOLD`
+- [ ] Stock movement `SALE_OUT` terbentuk
+- [ ] Garansi otomatis terbentuk

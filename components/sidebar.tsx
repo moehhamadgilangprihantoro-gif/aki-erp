@@ -5,6 +5,7 @@ import {
   Car,
   CircleDollarSign,
   ClipboardList,
+  Store,
   Gauge,
   History,
   LayoutDashboard,
@@ -23,6 +24,7 @@ import { logout } from '@/app/dashboard/actions'
 const staffMenu = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/pos', label: 'POS / Penjualan', icon: ShoppingCart },
+  { href: '/dashboard/orders', label: 'Pesanan Online', icon: Store },
   { href: '/dashboard/products', label: 'Produk & Stok', icon: Boxes },
   { href: '/dashboard', label: 'Pelanggan', icon: UsersRound },
   { href: '/dashboard', label: 'Pembelian', icon: PackagePlus },
@@ -33,6 +35,8 @@ const staffMenu = [
 
 const customerMenu = [
   { href: '/dashboard', label: 'Beranda', icon: LayoutDashboard },
+  { href: '/catalog', label: 'Katalog & Harga', icon: Store },
+  { href: '/dashboard/orders', label: 'Pesanan Saya', icon: ShoppingCart },
   { href: '/dashboard', label: 'Riwayat Pembelian', icon: History },
   { href: '/dashboard', label: 'Pemasangan', icon: Wrench },
   { href: '/dashboard', label: 'Garansi & Klaim', icon: ShieldCheck },
