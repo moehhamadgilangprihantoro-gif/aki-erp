@@ -1,39 +1,32 @@
-# Checklist Upgrade dan Deploy
+# Deploy checklist
 
 ## Supabase
 
-- [ ] Backup database bila project sudah berisi transaksi
-- [ ] Jalankan migration `202607130002_ecommerce_integration.sql`
-- [ ] Jalankan `seed.sql`
-- [ ] Pastikan tabel `orders`, `order_items`, `order_item_serials`, dan `product_warranties` muncul
-- [ ] Pastikan function `create_ecommerce_order`, `staff_mark_order_paid`, dan `expire_unpaid_orders` muncul
-
-## GitHub
-
-- [ ] Upload seluruh isi ZIP ke root repository menggunakan Codespaces
-- [ ] Pastikan folder `app`, `components`, `lib`, `netlify`, dan `supabase` ada
-- [ ] Commit dan push ke branch production
+- [ ] Run `202607130003_marketplace_separation.sql` on an existing v2 database.
+- [ ] Or run `DATABASE-FRESH-INSTALL.sql` and `seed.sql` for a new database.
+- [ ] Confirm the table `customer_addresses` exists.
+- [ ] Confirm RPC `update_my_customer_profile` exists.
+- [ ] Obtain Project URL and Publishable Key.
+- [ ] Create a Supabase secret key for server-only use.
+- [ ] Set the Netlify production URL in Auth URL Configuration.
+- [ ] Disable Confirm Email only if immediate registration is desired.
 
 ## Netlify
 
-- [ ] Base directory kosong
-- [ ] Build command `npm run build`
-- [ ] Set `NEXT_PUBLIC_SUPABASE_URL`
-- [ ] Set `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- [ ] Set `SUPABASE_SECRET_KEY` sebagai secret
-- [ ] Set `PAYMENT_WEBHOOK_SECRET` sebagai secret
-- [ ] Trigger **Clear cache and deploy site**
+- [ ] Repository root contains `app`, `components`, `lib`, and `package.json`.
+- [ ] Base directory is empty.
+- [ ] Build command is `npm run build`.
+- [ ] Publish directory is empty.
+- [ ] Add all five environment variables.
+- [ ] Trigger `Clear cache and deploy site` after changing variables.
 
-## Uji transaksi
+## Access test
 
-- [ ] Register akun customer
-- [ ] Katalog menampilkan produk dan stok
-- [ ] Tambah produk ke keranjang
-- [ ] Checkout dengan cabang yang memiliki stok
-- [ ] Order muncul di `/dashboard/orders`
-- [ ] Serial berubah dari `AVAILABLE` menjadi `RESERVED`
-- [ ] Admin klik Konfirmasi Bayar
-- [ ] Invoice otomatis terbentuk
-- [ ] Serial berubah menjadi `SOLD`
-- [ ] Stock movement `SALE_OUT` terbentuk
-- [ ] Garansi otomatis terbentuk
+- [ ] Anonymous visitor can open `/` and `/catalog`.
+- [ ] Customer login goes to `/account`.
+- [ ] Customer opening `/admin/dashboard` is redirected to `/account`.
+- [ ] Staff login goes to `/admin/dashboard`.
+- [ ] Staff opening `/account` is redirected to `/admin/dashboard`.
+- [ ] All admin sidebar pages open.
+- [ ] Mobile admin menu opens using the hamburger button.
+- [ ] Customer checkout creates an order in `/admin/orders`.

@@ -1,52 +1,6 @@
-import { BatteryCharging, LockKeyhole, ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
+import { BadgeCheck, BatteryCharging, LockKeyhole, ShoppingBag, UserRound } from 'lucide-react'
 import { login, registerCustomer } from './actions'
 
-export const dynamic = 'force-dynamic'
-
-type Props = { searchParams: Promise<{ error?: string; message?: string }> }
-
-export default async function LoginPage({ searchParams }: Props) {
-  const params = await searchParams
-
-  return (
-    <main className="auth-page">
-      <section className="auth-brand">
-        <div className="brand-mark"><BatteryCharging size={36} /></div>
-        <p className="eyebrow">AKI ERP</p>
-        <h1>Kelola penjualan aki dari stok sampai garansi.</h1>
-        <p className="auth-copy">Satu aplikasi untuk admin, kasir, gudang, teknisi, sales, dan pelanggan.</p>
-        <div className="auth-points">
-          <span><ShieldCheck size={18} /> Akses berdasarkan role dan cabang</span>
-          <span><LockKeyhole size={18} /> Database diamankan Supabase RLS</span>
-        </div>
-      </section>
-
-      <section className="auth-panel">
-        <div className="auth-card">
-          <div>
-            <p className="eyebrow blue">MASUK</p>
-            <h2>Selamat datang kembali</h2>
-            <p className="muted">Gunakan akun yang sudah dibuat di Supabase Auth.</p>
-          </div>
-          {params.error && <div className="alert error">{params.error}</div>}
-          {params.message && <div className="alert success">{params.message}</div>}
-          <form action={login} className="form-stack">
-            <label>Email<input name="email" type="email" placeholder="nama@email.com" required /></label>
-            <label>Password<input name="password" type="password" placeholder="Minimal 8 karakter" required /></label>
-            <button className="button primary" type="submit">Masuk ke dashboard</button>
-          </form>
-
-          <details className="register-box">
-            <summary>Daftar sebagai pelanggan</summary>
-            <form action={registerCustomer} className="form-stack compact">
-              <label>Nama lengkap<input name="fullName" required /></label>
-              <label>Email<input name="email" type="email" required /></label>
-              <label>Password<input name="password" type="password" minLength={8} required /></label>
-              <button className="button secondary" type="submit">Buat akun pelanggan</button>
-            </form>
-          </details>
-        </div>
-      </section>
-    </main>
-  )
-}
+type Props={searchParams:Promise<{error?:string;message?:string;mode?:string}>}
+export default async function LoginPage({searchParams}:Props){const params=await searchParams;const register=params.mode==='register';return <main className="commerce-auth-page"><section className="commerce-auth-visual"><Link className="auth-market-logo" href="/"><BatteryCharging/><span><strong>AKI</strong><small>STORE</small></span></Link><div><span className="auth-kicker">BELANJA AKI LEBIH MUDAH</span><h1>Produk original, stok nyata, dan pemasangan terpercaya.</h1><p>Akun pelanggan hanya digunakan untuk ecommerce. Area ERP dipisahkan dan hanya dapat diakses oleh staff.</p><div className="auth-benefits"><span><BadgeCheck/> Garansi tercatat otomatis</span><span><ShoppingBag/> Riwayat pesanan lengkap</span><span><LockKeyhole/> Data akun terlindungi</span></div></div></section><section className="commerce-auth-form"><div className="auth-form-card"><Link href="/" className="back-store">← Kembali ke toko</Link><div className="auth-tabs"><Link className={!register?'active':''} href="/login">Masuk</Link><Link className={register?'active':''} href="/login?mode=register">Daftar</Link></div>{params.error&&<div className="auth-alert error">{params.error}</div>}{params.message&&<div className="auth-alert success">{params.message}</div>}{register?<form action={registerCustomer}><div className="auth-heading"><UserRound/><div><h2>Buat Akun Pelanggan</h2><p>Daftar untuk checkout dan memantau pesanan.</p></div></div><label>Nama Lengkap<input name="fullName" required/></label><label>Email<input name="email" type="email" required/></label><label>Password<input name="password" type="password" minLength={8} required/><small>Minimal 8 karakter</small></label><button>Daftar Sekarang</button></form>:<form action={login}><div className="auth-heading"><LockKeyhole/><div><h2>Masuk ke Akun</h2><p>Customer diarahkan ke akun belanja, staff ke ERP.</p></div></div><label>Email<input name="email" type="email" required/></label><label>Password<input name="password" type="password" required/></label><div className="auth-help"><label><input type="checkbox"/> Ingat saya</label><a href="#">Lupa password?</a></div><button>Masuk</button></form>}<p className="auth-note">Dengan melanjutkan, Anda menyetujui syarat dan kebijakan privasi AKI Store.</p></div></section></main>}

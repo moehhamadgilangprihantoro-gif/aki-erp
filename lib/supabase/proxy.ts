@@ -24,7 +24,7 @@ export async function updateSession(request: NextRequest) {
   )
 
   const { data } = await supabase.auth.getClaims()
-  const isProtected = request.nextUrl.pathname.startsWith('/dashboard')
+  const isProtected = ['/dashboard', '/admin', '/account', '/checkout'].some((prefix) => request.nextUrl.pathname.startsWith(prefix))
 
   if (isProtected && !data?.claims?.sub) {
     const url = request.nextUrl.clone()

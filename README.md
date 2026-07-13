@@ -1,162 +1,115 @@
-# AKI Store + ERP v2
+# AKI Store + ERP v4
 
-Ecommerce aki dan ERP dalam satu aplikasi Next.js. Public store, portal pelanggan, POS, inventori serial number, pesanan online, pembayaran, invoice, pemasangan, dan garansi memakai satu database Supabase.
+Next.js application for Netlify with Supabase Auth/PostgreSQL.
 
-## Alur otomatis
+## Main changes in v4
+
+- Public storefront redesigned as a conventional Indonesian marketplace.
+- Customer area separated under `/account` and never uses the ERP layout.
+- ERP staff area separated under `/admin`.
+- Customers opening `/admin` are redirected to `/account`.
+- Staff opening `/account` are redirected to `/admin/dashboard`.
+- All ERP sidebar links now have real pages.
+- Responsive ERP sidebar becomes a drawer on tablet/mobile.
+- Ecommerce checkout remains integrated with ERP inventory, invoices, payments, warranties, and installations.
+
+## Routes
+
+### Public ecommerce
+
+- `/`
+- `/catalog`
+- `/product/[slug]`
+- `/cart`
+- `/checkout`
+- `/login`
+
+### Customer only
+
+- `/account`
+- `/account/orders`
+- `/account/warranties`
+- `/account/installations`
+- `/account/vehicles`
+- `/account/addresses`
+- `/account/profile`
+
+### ERP staff only
+
+- `/admin/dashboard`
+- `/admin/orders`
+- `/admin/pos`
+- `/admin/products`
+- `/admin/inventory`
+- `/admin/customers`
+- `/admin/purchases`
+- `/admin/installations`
+- `/admin/warranties`
+- `/admin/reports`
+- `/admin/settings`
+
+## Database setup
+
+### Existing Supabase project from v2
+
+Run only:
 
 ```text
-Customer checkout
-→ PostgreSQL membuat order
-→ Serial aki menjadi RESERVED
-→ Order langsung muncul di ERP
-→ Pembayaran dikonfirmasi oleh staff atau webhook
-→ Invoice penjualan dibuat
-→ Serial menjadi SOLD
-→ Stock movement SALE_OUT dibuat
-→ Pembayaran dicatat
-→ Garansi dibuat
-→ Job pemasangan dibuat bila dipilih
+supabase/migrations/202607130003_marketplace_separation.sql
 ```
 
-Jika order transfer/QRIS tidak dibayar sampai batas waktu, Netlify Scheduled Function memanggil database setiap 15 menit untuk mengubah order menjadi `EXPIRED` dan mengembalikan serial ke `AVAILABLE`.
+This creates customer addresses, safe customer profile RPC, missing purchase-order policies, and marketplace product fields.
 
-## Fitur source code
+### Brand-new Supabase project
 
-- Homepage ecommerce
-- Katalog dan detail produk
-- Harga dan stok real-time dari Supabase
-- Keranjang berbasis browser
-- Checkout cabang, delivery, pemasangan, kendaraan, dan tukar tambah
-- Transfer bank, QRIS, COD, dan bayar di toko
-- Portal pesanan pelanggan
-- Pesanan online pada ERP admin
-- Tombol konfirmasi pembayaran oleh admin/finance/kasir
-- Update status fulfillment
-- Webhook payment generic
-- POS penjualan toko
-- Master produk dan stok serial
-- Role dan RLS multi-cabang
-
-## File database
+Run:
 
 ```text
-supabase/migrations/202607130001_initial_schema.sql
-supabase/migrations/202607130002_ecommerce_integration.sql
+supabase/DATABASE-FRESH-INSTALL.sql
 supabase/seed.sql
 ```
 
-### Project Supabase lama yang sudah memakai v1
-
-Jalankan hanya:
-
-1. `202607130002_ecommerce_integration.sql`
-2. `seed.sql`
-
-Jangan ulangi migration `001` bila sebelumnya sudah berhasil dijalankan.
-
-### Project Supabase baru
-
-Jalankan secara berurutan:
-
-1. `202607130001_initial_schema.sql`
-2. `202607130002_ecommerce_integration.sql`
-3. `seed.sql`
-
-Semua dapat dijalankan melalui Supabase Dashboard → SQL Editor tanpa install aplikasi di laptop.
-
-## Environment variables Netlify
-
-Wajib untuk seluruh aplikasi:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
-```
-
-Wajib untuk webhook pembayaran dan pelepasan stok otomatis:
-
-```env
-SUPABASE_SECRET_KEY=sb_secret_xxxxx
-PAYMENT_WEBHOOK_SECRET=buat-random-secret-panjang
-CRON_SECRET=buat-random-secret-lain
-```
-
-`SUPABASE_SECRET_KEY` tidak boleh memakai prefix `NEXT_PUBLIC_` dan tidak boleh dimasukkan ke GitHub.
-
-## Netlify
-
-Repository root harus langsung berisi:
+## Netlify environment variables
 
 ```text
-app/
-components/
-lib/
-netlify/
-supabase/
-package.json
-package-lock.json
-netlify.toml
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SECRET_KEY
+PAYMENT_WEBHOOK_SECRET
+CRON_SECRET
 ```
 
-Build settings:
+Never prefix secret values with `NEXT_PUBLIC_`.
+
+## Browser-only deployment workflow
+
+1. Upload this ZIP to GitHub Codespaces.
+2. Extract it in the Codespaces terminal:
+
+```bash
+unzip -o aki-store-erp-v4.zip
+rm aki-store-erp-v4.zip
+git add .
+git commit -m "Upgrade AKI Store and ERP to v4"
+git push origin main
+```
+
+3. Netlify builds automatically from the repository root.
+4. Keep Netlify base directory empty.
+5. Build command: `npm run build`.
+6. Publish directory: leave blank; Netlify detects Next.js.
+
+## Supabase Auth
+
+For registration without email confirmation:
 
 ```text
-Base directory    : kosong
-Build command     : npm run build
-Publish directory : kosong / auto detected
+Supabase > Authentication > Providers > Email > Confirm email OFF
 ```
 
-Setelah environment variables disimpan, jalankan **Clear cache and deploy site**.
+For production, CAPTCHA is recommended when email confirmation is disabled.
 
-## Membuat admin pertama
-
-Buat user dari Supabase Authentication, lalu jalankan:
-
-```sql
-update public.profiles
-set role='SUPER_ADMIN',
-    branch_id='11111111-1111-1111-1111-111111111111',
-    is_active=true
-where id=(select id from auth.users where email='admin@example.com');
-```
-
-Logout dan login kembali setelah role diubah.
-
-## Konfirmasi pembayaran
-
-Untuk transfer manual atau QRIS manual:
-
-```text
-ERP → Pesanan Online → Referensi pembayaran → Konfirmasi bayar
-```
-
-Satu RPC database akan membuat invoice dan mengeluarkan stok secara atomic.
-
-## Webhook pembayaran
-
-Endpoint:
-
-```text
-POST /api/payments/webhook
-Header: x-webhook-secret: nilai PAYMENT_WEBHOOK_SECRET
-```
-
-Body generic:
-
-```json
-{
-  "orderId": "UUID-ORDER",
-  "provider": "PAYMENT_PROVIDER",
-  "reference": "PAY-123456",
-  "status": "PAID"
-}
-```
-
-Adaptor provider tertentu dapat dibuat dengan memverifikasi signature provider terlebih dahulu, lalu memanggil RPC `finalize_ecommerce_order_service`.
-
-## Validasi source
-
-Project telah diuji dengan:
+## Verified locally
 
 ```text
 npm ci

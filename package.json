@@ -1,6 +1,6 @@
 {
-  "name": "aki-store-erp",
-  "version": "2.0.0",
+  "name": "aki-store-erp-v4",
+  "version": "4.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -27,5 +27,5 @@
   "overrides": {
     "postcss": "8.5.10"
   },
-  "description": "Ecommerce aki terintegrasi ERP, Supabase, dan Netlify"
+  "description": "Marketplace ecommerce aki terintegrasi ERP, Supabase, dan Netlify"
 }
